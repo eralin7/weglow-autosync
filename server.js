@@ -96,9 +96,12 @@ async function fetchAllLeads(acc) {
 }
 
 // ── Parse leads ──────────────────────────────────────────────────
+// UTC+5 Almaty timezone offset
+const TZ_OFFSET = 5 * 3600;
 const fmtDate = ts => {
-  const d = new Date(Number(ts) * 1000);
-  return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+  // Shift timestamp by +5h so dates match Almaty local time
+  const d = new Date((Number(ts) + TZ_OFFSET) * 1000);
+  return `${String(d.getUTCDate()).padStart(2,'0')}.${String(d.getUTCMonth()+1).padStart(2,'0')}.${d.getUTCFullYear()}`;
 };
 
 const getField = (lead, id) => id
