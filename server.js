@@ -5,9 +5,16 @@ const SUPABASE_URL = 'https://bdyakgmeibpdkisbiykt.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJkeWFrZ21laWJwZGtpc2JpeWt0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMTQzOTMsImV4cCI6MjA4Nzc5MDM5M30.nA187grJR6XFQRmTP6WOM-6-1dZK1EzYNNP2JH9aAMg';
 
 const ACCOUNTS = [
-  { name:'Коллаген', domain:'weglow.amocrm.ru',    token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjIyODdkZTdmMzY4OWEzYTE0Y2Q2MmUxZDI4ZTRjZDkyOWEwMjYyNWJhNmJmZWYwYWQzOTRmZjhkY2M3MzFmNTM2ZDQ5YzdkZGQ5YmU2NDZkIn0.eyJhdWQiOiI4NWRhNjc3ZC0xOGUyLTQ5ZjktYjQ1NC1jYTNhMmVhZTlmMWIiLCJqdGkiOiIyMjg3ZGU3ZjM2ODlhM2ExNGNkNjJlMWQyOGU0Y2Q5MjlhMDI2MjViYTZiZmVmMGFkMzk0ZmY4ZGNjNzMxZjUzNmQ0OWM3ZGRkOWJlNjQ2ZCIsImlhdCI6MTc3MjY1NzYyNCwibmJmIjoxNzcyNjU3NjI0LCJleHAiOjE4OTg5ODU2MDAsInN1YiI6IjExNTQ2MzQ2IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMxOTYyMzI2LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsIm5vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiZjZmNDFlM2EtZGE4Yy00YWE3LWFhMGEtZTEyN2IzODE2NzVjIiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.IAfT5CDTKXg_UTQKcVFfrS-ZlF3ZSq7a3Mdf--jy8Z2C1YvprTwcQg2SH2b2FsEVAKDqrSgx8Lc-YblLqv4c--vLzgB5lsr-xafuI9af6QWmrsdk_NXypl7CWhv4N84StT_14icwn_AK2k9xknvagNucqrIssW57ua9tmgddFP3x71mCbia8sFmUdTNW8wB2HJNU7jo6drEmo6VxWSGUxzohV3ux3D4ZjhGsDvEngGfLI4AHrbPsf2WmWFn9mATN0kd4b742Bu1iOELKDnZeu45a63p7AQBd2XUIwxfHCbwmTOMMB-Ea-7HkmDBv-buThHWU-Vcj0krLxx3U0NFuwA' },
-  { name:'Ummi',     domain:'erbbolx.amocrm.ru',   token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImFjZjgwYjY5MzFhMTNmNzRkOGE3ZTdlZWVhODQ2MjU2ZDQzM2Q3N2QxZmUxZTRjYjMxM2FhYTMxMmRhY2NjNDM1YzE3NTdkMjI1NTM1ZjM4In0.eyJhdWQiOiI5OGI5MDQ1OC1jMThiLTRjYTItYWRmMS1mNzFhMDc0ZGZiYzMiLCJqdGkiOiJhY2Y4MGI2OTMxYTEzZjc0ZDhhN2U3ZWVlYTg0NjI1NmQ0MzNkNzdkMWZlMWU0Y2IzMTNhYWEzMTJkYWNjYzQzNWMxNzU3ZDIyNTUzNWYzOCIsImlhdCI6MTc3MjY1NzY4OSwibmJmIjoxNzcyNjU3Njg5LCJleHAiOjE4OTkwNzIwMDAsInN1YiI6IjEzMjU1OTE0IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMyNzgzNjE0LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsIm5vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiMWFhNzhkNzEtYTIxMC00ODVhLWI1NmUtY2JiMDYyNjA3YjJmIiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.kBk7CpSC3CsMsD-xfDsP-4cDiTNqG9FnbVisIMgsK9pvEfwf-QKuimb2JAOEhsrJXjO-iswi8dTZJL6uee0PHhpjZMRj03-ieO190VpzR1nbCjUffjhC6TNVvHmSsfJNs8wQKu-3TVXldnNT1sQyejCPHDdvLom4GXFePTNsClOt_Q3jZadxvcAKTt4VOjgKm2WTLfZWt3afjsj1GHPBW0KncvLpZvbXWcrfyaH2GusEuGP5hFfU4CXN5kUo03CQmc8TH1LkIaL8uHNIzbhJBZdg4sc4jDmLDjRw6vV-1J8Cas9TvYgEkJ7Rle4PSOLhce-Cnywch_a-bd7DbRKkPg' },
-  { name:'Кофе',     domain:'mushrooms.amocrm.ru',  token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImJlZmVhMzE1OGNiMjc4ZjgxYmIwYTllZDcyNDRkMDFjNDdkMDJiMWY1Zjk3NzcyOGJlZGNjY2Q5ODBhMGU4YmRiYzVkNGNlNzYzOTcwZjRjIn0.eyJhdWQiOiJmNDliNzY0ZC1iM2EwLTQzZjQtODczYi0yYzk2ZGEwYmEyNmMiLCJqdGkiOiJiZWZlYTMxNThjYjI3OGY4MWJiMGE5ZWQ3MjQ0ZDAxYzQ3ZDAyYjFmNWY5Nzc3MjhiZWRjY2NkOTgwYTBlOGJkYmM1ZDRjZTc2Mzk3MGY0YyIsImlhdCI6MTc3MjY1Nzc0MSwibmJmIjoxNzcyNjU3NzQxLCJleHAiOjE4OTkwNzIwMDAsInN1YiI6IjIzOTc4NjUiLCJncmFudF90eXBlIjoiIiwiYWNjb3VudF9pZCI6MzI4ODY4NzAsImJhc2VfZG9tYWluIjoiYW1vY3JtLnJ1IiwidmVyc2lvbiI6Miwic2NvcGVzIjpbInB1c2hfbm90aWZpY2F0aW9ucyIsImZpbGVzIiwiY3JtIiwibm90aWZpY2F0aW9ucyJdLCJoYXNoX3V1aWQiOiIwMTI3ODQ4NS00NjQ2LTRkMGEtOTQ4Ni1kZDZiNmJmM2M1YTYiLCJhcGlfZG9tYWluIjoiYXBpLWIuYW1vY3JtLnJ1In0.hHlVdsC4TpTfqdeefNyn4OFXdRMwzEuq7c3QPgrK86gHom2aypje6tx4WLbbwZJ8Jm5aEqctQH9zZF4CliB9oB9bghAn66ElAHSmmhfnxIsrfXWecPErPN9WiD6edBlpyPHaoP6JjhBKmJ2mkBWaeV0U52L50aoglTy5nPRbdKa3kXBFAqZQo3L8_sN5jhvbBwsieAr6F_CAfjYJani_qEAQ9egSeoE8xJBv5S1ll6U28F2NPeRqMYqjPUAAKNtje2eTuRWXk5IsP4OsGaLi4AKctRBvanMvfUmQu-5GJ6XwdOaSuShWw36ryVVijrIQ4mdmbRnZLsZT7Th53ipiYg' },
+  { name:'Коллаген', domain:'weglow.amocrm.ru',
+    token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjIyODdkZTdmMzY4OWEzYTE0Y2Q2MmUxZDI4ZTRjZDkyOWEwMjYyNWJhNmJmZWYwYWQzOTRmZjhkY2M3MzFmNTM2ZDQ5YzdkZGQ5YmU2NDZkIn0.eyJhdWQiOiI4NWRhNjc3ZC0xOGUyLTQ5ZjktYjQ1NC1jYTNhMmVhZTlmMWIiLCJqdGkiOiIyMjg3ZGU3ZjM2ODlhM2ExNGNkNjJlMWQyOGU0Y2Q5MjlhMDI2MjViYTZiZmVmMGFkMzk0ZmY4ZGNjNzMxZjUzNmQ0OWM3ZGRkOWJlNjQ2ZCIsImlhdCI6MTc3MjY1NzYyNCwibmJmIjoxNzcyNjU3NjI0LCJleHAiOjE4OTg5ODU2MDAsInN1YiI6IjExNTQ2MzQ2IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMxOTYyMzI2LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsIm5vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiZjZmNDFlM2EtZGE4Yy00YWE3LWFhMGEtZTEyN2IzODE2NzVjIiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.IAfT5CDTKXg_UTQKcVFfrS-ZlF3ZSq7a3Mdf--jy8Z2C1YvprTwcQg2SH2b2FsEVAKDqrSgx8Lc-YblLqv4c--vLzgB5lsr-xafuI9af6QWmrsdk_NXypl7CWhv4N84StT_14icwn_AK2k9xknvagNucqrIssW57ua9tmgddFP3x71mCbia8sFmUdTNW8wB2HJNU7jo6drEmo6VxWSGUxzohV3ux3D4ZjhGsDvEngGfLI4AHrbPsf2WmWFn9mATN0kd4b742Bu1iOELKDnZeu45a63p7AQBd2XUIwxfHCbwmTOMMB-Ea-7HkmDBv-buThHWU-Vcj0krLxx3U0NFuwA',
+    // Cross-product field names to discover
+    crossFieldNames: ['кофе'] },
+  { name:'Ummi', domain:'erbbolx.amocrm.ru',
+    token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImFjZjgwYjY5MzFhMTNmNzRkOGE3ZTdlZWVhODQ2MjU2ZDQzM2Q3N2QxZmUxZTRjYjMxM2FhYTMxMmRhY2NjNDM1YzE3NTdkMjI1NTM1ZjM4In0.eyJhdWQiOiI5OGI5MDQ1OC1jMThiLTRjYTItYWRmMS1mNzFhMDc0ZGZiYzMiLCJqdGkiOiJhY2Y4MGI2OTMxYTEzZjc0ZDhhN2U3ZWVlYTg0NjI1NmQ0MzNkNzdkMWZlMWU0Y2IzMTNhYWEzMTJkYWNjYzQzNWMxNzU3ZDIyNTUzNWYzOCIsImlhdCI6MTc3MjY1NzY4OSwibmJmIjoxNzcyNjU3Njg5LCJleHAiOjE4OTkwNzIwMDAsInN1YiI6IjEzMjU1OTE0IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMyNzgzNjE0LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsIm5vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiMWFhNzhkNzEtYTIxMC00ODVhLWI1NmUtY2JiMDYyNjA3YjJmIiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.kBk7CpSC3CsMsD-xfDsP-4cDiTNqG9FnbVisIMgsK9pvEfwf-QKuimb2JAOEhsrJXjO-iswi8dTZJL6uee0PHhpjZMRj03-ieO190VpzR1nbCjUffjhC6TNVvHmSsfJNs8wQKu-3TVXldnNT1sQyejCPHDdvLom4GXFePTNsClOt_Q3jZadxvcAKTt4VOjgKm2WTLfZWt3afjsj1GHPBW0KncvLpZvbXWcrfyaH2GusEuGP5hFfU4CXN5kUo03CQmc8TH1LkIaL8uHNIzbhJBZdg4sc4jDmLDjRw6vV-1J8Cas9TvYgEkJ7Rle4PSOLhce-Cnywch_a-bd7DbRKkPg',
+    crossFieldNames: ['коллаген красный', 'коллаген синий', 'коллаген кофе', 'кофе'] },
+  { name:'Кофе', domain:'mushrooms.amocrm.ru',
+    token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImJlZmVhMzE1OGNiMjc4ZjgxYmIwYTllZDcyNDRkMDFjNDdkMDJiMWY1Zjk3NzcyOGJlZGNjY2Q5ODBhMGU4YmRiYzVkNGNlNzYzOTcwZjRjIn0.eyJhdWQiOiJmNDliNzY0ZC1iM2EwLTQzZjQtODczYi0yYzk2ZGEwYmEyNmMiLCJqdGkiOiJiZWZlYTMxNThjYjI3OGY4MWJiMGE5ZWQ3MjQ0ZDAxYzQ3ZDAyYjFmNWY5Nzc3MjhiZWRjY2NkOTgwYTBlOGJkYmM1ZDRjZTc2Mzk3MGY0YyIsImlhdCI6MTc3MjY1Nzc0MSwibmJmIjoxNzcyNjU3NzQxLCJleHAiOjE4OTkwNzIwMDAsInN1YiI6IjIzOTc4NjUiLCJncmFudF90eXBlIjoiIiwiYWNjb3VudF9pZCI6MzI4ODY4NzAsImJhc2VfZG9tYWluIjoiYW1vY3JtLnJ1IiwidmVyc2lvbiI6Miwic2NvcGVzIjpbInB1c2hfbm90aWZpY2F0aW9ucyIsImZpbGVzIiwiY3JtIiwibm90aWZpY2F0aW9ucyJdLCJoYXNoX3V1aWQiOiIwMTI3ODQ4NS00NjQ2LTRkMGEtOTQ4Ni1kZDZiNmJmM2M1YTYiLCJhcGlfZG9tYWluIjoiYXBpLWIuYW1vY3JtLnJ1In0.hHlVdsC4TpTfqdeefNyn4OFXdRMwzEuq7c3QPgrK86gHom2aypje6tx4WLbbwZJ8Jm5aEqctQH9zZF4CliB9oB9bghAn66ElAHSmmhfnxIsrfXWecPErPN9WiD6edBlpyPHaoP6JjhBKmJ2mkBWaeV0U52L50aoglTy5nPRbdKa3kXBFAqZQo3L8_sN5jhvbBwsieAr6F_CAfjYJani_qEAQ9egSeoE8xJBv5S1ll6U28F2NPeRqMYqjPUAAKNtje2eTuRWXk5IsP4OsGaLi4AKctRBvanMvfUmQu-5GJ6XwdOaSuShWw36ryVVijrIQ4mdmbRnZLsZT7Th53ipiYg',
+    crossFieldNames: ['кофе', 'коллаген синий', 'коллаген красный', 'ummi'] },
 ];
 
 const VALID_STAGES = new Set(['заказ','заказ на подтверждение','курьерская доставка','успешно реализовано']);
@@ -58,13 +65,26 @@ async function findOrderField(acc) {
   try {
     const d = await amoGet(acc.domain, acc.token, '/api/v4/leads/custom_fields?limit=250');
     const fields = d?._embedded?.custom_fields || [];
-    console.log(`[${acc.name}] Custom fields:`);
-    fields.forEach(f => console.log(`  ${f.id}: "${f.name}" (${f.type})`));
-    const f = fields.find(f => f.name.toLowerCase().includes('дата заказа') && !f.name.toLowerCase().includes('первого'))
-           || fields.find(f => f.name.toLowerCase().includes('заказа') && f.type === 'date');
-    if (f) { console.log(`[${acc.name}] ✅ orderField: ${f.id} "${f.name}"`); return f.id; }
-    console.log(`[${acc.name}] ⚠ No order date field found`);
-    return null;
+    console.log(`[${acc.name}] Custom fields (${fields.length}):`);
+    fields.forEach(f => console.log(`  ${f.id}: "${f.name}" (${f.field_type})`));
+
+    // Find order date field
+    const orderField = fields.find(f => f.name.toLowerCase().includes('дата заказа') && !f.name.toLowerCase().includes('первого'))
+                    || fields.find(f => f.name.toLowerCase().includes('заказа') && f.field_type === 'date');
+    if (orderField) console.log(`[${acc.name}] ✅ orderField: ${orderField.id} "${orderField.name}"`);
+    else console.log(`[${acc.name}] ⚠ No order date field found`);
+
+    // Find cross-product fields
+    acc.crossFields = {}; // { fieldName: fieldId }
+    for (const name of (acc.crossFieldNames || [])) {
+      const f = fields.find(f => f.name.toLowerCase().includes(name));
+      if (f) {
+        acc.crossFields[f.name] = f.id;
+        console.log(`[${acc.name}] ✅ crossField: ${f.id} "${f.name}"`);
+      }
+    }
+
+    return orderField ? orderField.id : null;
   } catch(e) { console.error(`[${acc.name}] findOrderField:`, e.message); return null; }
 }
 
@@ -109,7 +129,7 @@ const getField = (lead, id) => id
   : null;
 
 function parseLeads(leads, acc, statusMap, userMap) {
-  const daily = {}, mgrs = {};
+  const daily = {}, mgrs = {}, cross = {}; // cross: { fieldName: {date: qty} }
   for (const lead of leads) {
     const stage      = (statusMap[lead.status_id] || '').toLowerCase();
     const validStage = VALID_STAGES.has(stage);
@@ -118,6 +138,17 @@ function parseLeads(leads, acc, statusMap, userMap) {
     const cDate      = lead.created_at ? fmtDate(lead.created_at) : null;
     const orderVal   = getField(lead, acc.orderDateFieldId);
     const oDate      = (orderVal && validStage) ? fmtDate(orderVal) : null;
+
+    // Cross-product sales (only valid stages)
+    if (validStage && oDate && acc.crossFields) {
+      for (const [fieldName, fieldId] of Object.entries(acc.crossFields)) {
+        const qty = parseInt(getField(lead, fieldId) || 0);
+        if (qty > 0) {
+          if (!cross[fieldName]) cross[fieldName] = {};
+          cross[fieldName][oDate] = (cross[fieldName][oDate] || 0) + qty;
+        }
+      }
+    }
 
     if (cDate) {
       if (!daily[cDate]) daily[cDate] = [0,0,0];
@@ -146,7 +177,7 @@ function parseLeads(leads, acc, statusMap, userMap) {
     avgCheck: v.deals>0 ? Math.round(v.budget/v.deals) : 0,
     daily: v.daily,
   })).sort((a,b) => b.budget-a.budget);
-  return { daily, managers };
+  return { daily, managers, cross };
 }
 
 // ── Supabase ─────────────────────────────────────────────────────
@@ -175,7 +206,7 @@ async function syncAll() {
   const t0 = Date.now();
   console.log(`\n[${new Date().toISOString()}] ══ SYNC START ══`);
   syncErrors = [];
-  const RAW = {}, MANAGERS = {};
+  const RAW = {}, MANAGERS = {}, CROSS_SALES = {};
 
   for (const acc of ACCOUNTS) {
     try {
@@ -185,8 +216,8 @@ async function syncAll() {
       acc.orderDateFieldId = fieldCache[acc.name];
 
       const leads = await fetchAllLeads(acc);
-      const { daily, managers } = parseLeads(leads, acc, statusCache[acc.name], userCache[acc.name]);
-      RAW[acc.name] = daily; MANAGERS[acc.name] = managers;
+      const { daily, managers, cross } = parseLeads(leads, acc, statusCache[acc.name], userCache[acc.name]);
+      RAW[acc.name] = daily; MANAGERS[acc.name] = managers; CROSS_SALES[acc.name] = cross;
 
       const deals  = managers.reduce((s,m) => s+m.deals, 0);
       const budget = managers.reduce((s,m) => s+m.budget, 0);
@@ -202,7 +233,7 @@ async function syncAll() {
   let AD_SPEND = {};
   try { const r = await sbGet('weglow_data?id=eq.1&select=data'); if (r[0]?.data?.AD_SPEND) AD_SPEND = r[0].data.AD_SPEND; } catch(e) {}
 
-  await sbSave({ RAW, MANAGERS, AD_SPEND, updatedAt: new Date().toISOString() });
+  await sbSave({ RAW, MANAGERS, AD_SPEND, CROSS_SALES, updatedAt: new Date().toISOString() });
 
   const elapsed = ((Date.now()-t0)/1000).toFixed(1);
   lastSync = new Date().toISOString();
