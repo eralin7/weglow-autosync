@@ -100,13 +100,42 @@ async function findOrderField(acc) {
   } catch(e) { console.error(`[${acc.name}] findOrderField:`, e.message); return null; }
 }
 
+// Normalize AmoCRM group name → standard ROP name
+const ROP_NAME_MAP = {
+  'роп айдана':    'РОП Айдана',
+  'айдана роп':    'РОП Айдана',
+  'роп аслиддин':  'РОП Аслиддин',
+  'роп нурдаулет': 'РОП Нурдаулет',
+  'диас роп':      'РОП Диас',
+  'роп диас':      'РОП Диас',
+};
+function normalizeRopName(groupName) {
+  const lower = groupName.toLowerCase().trim();
+  if (ROP_NAME_MAP[lower]) return ROP_NAME_MAP[lower];
+  // Fuzzy: check if any key is contained in group name
+  for (const [k, v] of Object.entries(ROP_NAME_MAP)) {
+    if (lower.includes(k) || k.includes(lower)) return v;
+  }
+  return null; // not a ROP group
+}
+
 async function loadUsers(acc) {
   const map = {};
+  const userGroups = {}; // userId → normalized ROP name
   try {
-    const d = await amoGet(acc.domain, acc.token, '/api/v4/users?limit=250');
-    for (const u of (d?._embedded?.users || [])) map[u.id] = u.name;
-    console.log(`[${acc.name}] ${Object.keys(map).length} users loaded`);
+    const d = await amoGet(acc.domain, acc.token, '/api/v4/users?with=group&limit=250');
+    for (const u of (d?._embedded?.users || [])) {
+      map[u.id] = u.name;
+      // Extract group → ROP mapping
+      const groups = u?._embedded?.groups || [];
+      for (const g of groups) {
+        const rop = normalizeRopName(g.name || '');
+        if (rop) { userGroups[u.id] = rop; break; }
+      }
+    }
+    console.log(`[${acc.name}] ${Object.keys(map).length} users loaded, ${Object.keys(userGroups).length} with ROP groups`);
   } catch(e) { console.error(`[${acc.name}] users:`, e.message); }
+  acc._userGroups = userGroups;
   return map;
 }
 
@@ -255,16 +284,27 @@ async function syncAll() {
     }
   }
 
-  // Preserve AD_SPEND, ROP_PLANS, MGR_TO_ROP from previous data
-  let AD_SPEND = {}, ROP_PLANS = {}, MGR_TO_ROP = {};
+  // Build MGR_TO_ROP from AmoCRM user groups (auto-detected)
+  const MGR_TO_ROP_AUTO = {};
+  for (const acc of ACCOUNTS) {
+    const ug = acc._userGroups || {};
+    const umap = userCache[acc.name] || {};
+    for (const [uid, ropName] of Object.entries(ug)) {
+      const mgrName = umap[uid];
+      if (mgrName && ropName) MGR_TO_ROP_AUTO[mgrName] = ropName;
+    }
+  }
+  console.log(`[MGR_TO_ROP] ${Object.keys(MGR_TO_ROP_AUTO).length} managers mapped to ROPs`);
+
+  // Preserve AD_SPEND, ROP_PLANS from previous data
+  let AD_SPEND = {}, ROP_PLANS = {};
   try {
     const r = await sbGet('weglow_data?id=eq.1&select=data');
     if (r[0]?.data?.AD_SPEND) AD_SPEND = r[0].data.AD_SPEND;
     if (r[0]?.data?.ROP_PLANS) ROP_PLANS = r[0].data.ROP_PLANS;
-    if (r[0]?.data?.MGR_TO_ROP) MGR_TO_ROP = r[0].data.MGR_TO_ROP;
   } catch(e) {}
 
-  await sbSave({ RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP, CROSS_SALES, PRODUCTS, updatedAt: new Date().toISOString() });
+  await sbSave({ RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP: MGR_TO_ROP_AUTO, CROSS_SALES, PRODUCTS, updatedAt: new Date().toISOString() });
 
   const elapsed = ((Date.now()-t0)/1000).toFixed(1);
   lastSync = new Date().toISOString();
