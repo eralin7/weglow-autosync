@@ -255,11 +255,16 @@ async function syncAll() {
     }
   }
 
-  // Preserve AD_SPEND from ad.html
-  let AD_SPEND = {};
-  try { const r = await sbGet('weglow_data?id=eq.1&select=data'); if (r[0]?.data?.AD_SPEND) AD_SPEND = r[0].data.AD_SPEND; } catch(e) {}
+  // Preserve AD_SPEND, ROP_PLANS, MGR_TO_ROP from previous data
+  let AD_SPEND = {}, ROP_PLANS = {}, MGR_TO_ROP = {};
+  try {
+    const r = await sbGet('weglow_data?id=eq.1&select=data');
+    if (r[0]?.data?.AD_SPEND) AD_SPEND = r[0].data.AD_SPEND;
+    if (r[0]?.data?.ROP_PLANS) ROP_PLANS = r[0].data.ROP_PLANS;
+    if (r[0]?.data?.MGR_TO_ROP) MGR_TO_ROP = r[0].data.MGR_TO_ROP;
+  } catch(e) {}
 
-  await sbSave({ RAW, MANAGERS, AD_SPEND, CROSS_SALES, PRODUCTS, updatedAt: new Date().toISOString() });
+  await sbSave({ RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP, CROSS_SALES, PRODUCTS, updatedAt: new Date().toISOString() });
 
   const elapsed = ((Date.now()-t0)/1000).toFixed(1);
   lastSync = new Date().toISOString();
