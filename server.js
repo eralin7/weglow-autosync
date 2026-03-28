@@ -245,8 +245,14 @@ const sbDel  = path => fetchJSON(`${SUPABASE_URL}/rest/v1/${path}`, { method:'DE
 const sbPost = (path, body) => fetchJSON(`${SUPABASE_URL}/rest/v1/${path}`, { method:'POST', headers: sbHeaders, body: JSON.stringify(body) });
 
 async function sbSave(payload) {
-  try { await sbDel('weglow_data?id=eq.1'); } catch(e) {}
-  await sbPost('weglow_data', { id:1, data:payload, updated_at: new Date().toISOString() });
+  // Use PATCH (upsert) instead of DELETE+INSERT to avoid race conditions
+  const body = JSON.stringify({ data: payload, updated_at: new Date().toISOString() });
+  const res = await fetchJSON(`${SUPABASE_URL}/rest/v1/weglow_data?id=eq.1`, {
+    method: 'PATCH',
+    headers: { ...sbHeaders, 'Prefer': 'return=minimal' },
+    body
+  });
+  return res;
 }
 
 // ── Caches ───────────────────────────────────────────────────────
