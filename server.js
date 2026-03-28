@@ -296,15 +296,28 @@ async function syncAll() {
   }
   console.log(`[MGR_TO_ROP] ${Object.keys(MGR_TO_ROP_AUTO).length} managers mapped to ROPs`);
 
-  // Preserve AD_SPEND, ROP_PLANS from previous data
-  let AD_SPEND = {}, ROP_PLANS = {};
+  // Preserve AD_SPEND, ROP_PLANS, MGR_TO_ROP from previous data
+  let AD_SPEND = {}, ROP_PLANS = {}, prevMgrToRop = {};
+  let preserveOk = false;
   try {
     const r = await sbGet('weglow_data?id=eq.1&select=data');
-    if (r[0]?.data?.AD_SPEND) AD_SPEND = r[0].data.AD_SPEND;
-    if (r[0]?.data?.ROP_PLANS) ROP_PLANS = r[0].data.ROP_PLANS;
-  } catch(e) {}
+    if (r && r[0] && r[0].data) {
+      if (r[0].data.AD_SPEND && Object.keys(r[0].data.AD_SPEND).length > 0) AD_SPEND = r[0].data.AD_SPEND;
+      if (r[0].data.ROP_PLANS && Object.keys(r[0].data.ROP_PLANS).length > 0) ROP_PLANS = r[0].data.ROP_PLANS;
+      if (r[0].data.MGR_TO_ROP) prevMgrToRop = r[0].data.MGR_TO_ROP;
+      preserveOk = true;
+      console.log(`[PRESERVE] AD_SPEND: ${Object.keys(AD_SPEND).length} keys, ROP_PLANS: ${Object.keys(ROP_PLANS).length} keys`);
+    } else {
+      console.warn('[PRESERVE] Supabase returned empty/null data, keeping previous values');
+    }
+  } catch(e) {
+    console.error('[PRESERVE] Failed to read previous data:', e.message);
+  }
 
-  await sbSave({ RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP: MGR_TO_ROP_AUTO, CROSS_SALES, PRODUCTS, updatedAt: new Date().toISOString() });
+  // Merge auto-detected MGR_TO_ROP with previous (auto wins on conflict)
+  const finalMgrToRop = Object.keys(MGR_TO_ROP_AUTO).length > 0 ? MGR_TO_ROP_AUTO : prevMgrToRop;
+
+  await sbSave({ RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP: finalMgrToRop, CROSS_SALES, PRODUCTS, updatedAt: new Date().toISOString() });
 
   const elapsed = ((Date.now()-t0)/1000).toFixed(1);
   lastSync = new Date().toISOString();
