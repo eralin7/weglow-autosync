@@ -302,8 +302,9 @@ async function syncAll() {
   }
   console.log(`[MGR_TO_ROP] ${Object.keys(MGR_TO_ROP_AUTO).length} managers mapped to ROPs`);
 
-  // Preserve AD_SPEND, ROP_PLANS, MGR_TO_ROP from previous data
+  // Preserve AD_SPEND, ROP_PLANS, MGR_TO_ROP, ARCHIVE, RNP_EXCEL from previous data
   let AD_SPEND = {}, ROP_PLANS = {}, prevMgrToRop = {};
+  let ARCHIVE_RAW = {}, ARCHIVE_MANAGERS = {}, RNP_EXCEL = {};
   let preserveOk = false;
   try {
     const r = await sbGet('weglow_data?id=eq.1&select=data');
@@ -311,8 +312,11 @@ async function syncAll() {
       if (r[0].data.AD_SPEND && Object.keys(r[0].data.AD_SPEND).length > 0) AD_SPEND = r[0].data.AD_SPEND;
       if (r[0].data.ROP_PLANS && Object.keys(r[0].data.ROP_PLANS).length > 0) ROP_PLANS = r[0].data.ROP_PLANS;
       if (r[0].data.MGR_TO_ROP) prevMgrToRop = r[0].data.MGR_TO_ROP;
+      if (r[0].data.ARCHIVE_RAW) ARCHIVE_RAW = r[0].data.ARCHIVE_RAW;
+      if (r[0].data.ARCHIVE_MANAGERS) ARCHIVE_MANAGERS = r[0].data.ARCHIVE_MANAGERS;
+      if (r[0].data.RNP_EXCEL) RNP_EXCEL = r[0].data.RNP_EXCEL;
       preserveOk = true;
-      console.log(`[PRESERVE] AD_SPEND: ${Object.keys(AD_SPEND).length} keys, ROP_PLANS: ${Object.keys(ROP_PLANS).length} keys`);
+      console.log(`[PRESERVE] AD_SPEND: ${Object.keys(AD_SPEND).length} keys, ROP_PLANS: ${Object.keys(ROP_PLANS).length} keys, ARCHIVE: ${Object.keys(ARCHIVE_RAW).length} accs, RNP_EXCEL: ${Object.keys(RNP_EXCEL).length} keys`);
     } else {
       console.warn('[PRESERVE] Supabase returned empty/null data, keeping previous values');
     }
@@ -323,7 +327,7 @@ async function syncAll() {
   // Merge auto-detected MGR_TO_ROP with previous (auto wins on conflict)
   const finalMgrToRop = Object.keys(MGR_TO_ROP_AUTO).length > 0 ? MGR_TO_ROP_AUTO : prevMgrToRop;
 
-  await sbSave({ RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP: finalMgrToRop, CROSS_SALES, PRODUCTS, updatedAt: new Date().toISOString() });
+  await sbSave({ RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP: finalMgrToRop, CROSS_SALES, PRODUCTS, ARCHIVE_RAW, ARCHIVE_MANAGERS, RNP_EXCEL, updatedAt: new Date().toISOString() });
 
   const elapsed = ((Date.now()-t0)/1000).toFixed(1);
   lastSync = new Date().toISOString();
