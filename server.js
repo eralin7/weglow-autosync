@@ -355,7 +355,7 @@ async function syncAll() {
 
   // Preserve AD_SPEND, ROP_PLANS, MGR_TO_ROP, ARCHIVE, RNP_EXCEL from previous data
   let AD_SPEND = {}, ROP_PLANS = {}, prevMgrToRop = {};
-  let ARCHIVE_RAW = {}, ARCHIVE_MANAGERS = {}, RNP_EXCEL = {};
+  let ARCHIVE_RAW = {}, ARCHIVE_MANAGERS = {}, RNP_EXCEL = {}, AI_ADVICE = null;
   let preserveOk = false;
   try {
     const r = await sbGet('weglow_data?id=eq.1&select=data');
@@ -366,6 +366,7 @@ async function syncAll() {
       if (r[0].data.ARCHIVE_RAW) ARCHIVE_RAW = r[0].data.ARCHIVE_RAW;
       if (r[0].data.ARCHIVE_MANAGERS) ARCHIVE_MANAGERS = r[0].data.ARCHIVE_MANAGERS;
       if (r[0].data.RNP_EXCEL) RNP_EXCEL = r[0].data.RNP_EXCEL;
+      if (r[0].data.AI_ADVICE) AI_ADVICE = r[0].data.AI_ADVICE;
       preserveOk = true;
       console.log(`[PRESERVE] AD_SPEND: ${Object.keys(AD_SPEND).length} keys, ROP_PLANS: ${Object.keys(ROP_PLANS).length} keys, ARCHIVE: ${Object.keys(ARCHIVE_RAW).length} accs, RNP_EXCEL: ${Object.keys(RNP_EXCEL).length} keys`);
     } else {
@@ -378,58 +379,15 @@ async function syncAll() {
   // Merge auto-detected MGR_TO_ROP with previous (keep old mappings for archived managers, auto wins on conflict)
   const finalMgrToRop = { ...prevMgrToRop, ...MGR_TO_ROP_AUTO };
 
-  await sbSave({ RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP: finalMgrToRop, CROSS_SALES, PRODUCTS, ARCHIVE_RAW, ARCHIVE_MANAGERS, RNP_EXCEL, updatedAt: new Date().toISOString() });
+  const savePayload = { RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP: finalMgrToRop, CROSS_SALES, PRODUCTS, ARCHIVE_RAW, ARCHIVE_MANAGERS, RNP_EXCEL, updatedAt: new Date().toISOString() };
+  if (AI_ADVICE) savePayload.AI_ADVICE = AI_ADVICE;
+  await sbSave(savePayload);
 
   const elapsed = ((Date.now()-t0)/1000).toFixed(1);
   lastSync = new Date().toISOString();
   syncStatus = syncErrors.length ? `Частично за ${elapsed}с (${syncErrors.length} ошибок)` : `✅ OK за ${elapsed}с`;
   console.log(`[DONE] ${syncStatus}\n`);
   isSyncing = false;
-}
-
-// ── AI Advisor ──────────────────────────────────────────────────
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
-let aiAdviceCache = { text: '', ts: 0 };
-const AI_CACHE_TTL = 60 * 60 * 1000; // 1 hour
-
-async function generateAiAdvice(metrics) {
-  const body = JSON.stringify({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1024,
-    messages: [{
-      role: 'user',
-      content: `Ты — ИИ-советник для отдела продаж WeGlow (Казахстан, косметика/БАД). Проанализируй метрики и дай 3-5 кратких конкретных рекомендаций на русском. Формат: маркированный список, каждый пункт — конкретное действие. Без вступлений.
-
-Текущие метрики:
-${metrics}`
-    }]
-  });
-
-  return new Promise((resolve, reject) => {
-    const req = https.request({
-      hostname: 'api.anthropic.com',
-      path: '/v1/messages',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-      }
-    }, res => {
-      let data = '';
-      res.on('data', c => data += c);
-      res.on('end', () => {
-        try {
-          const j = JSON.parse(data);
-          if (j.content && j.content[0]) resolve(j.content[0].text);
-          else reject(new Error(j.error?.message || 'No content'));
-        } catch(e) { reject(e); }
-      });
-    });
-    req.on('error', reject);
-    req.write(body);
-    req.end();
-  });
 }
 
 // ── HTTP Server ──────────────────────────────────────────────────
@@ -449,41 +407,6 @@ http.createServer((req, res) => {
     return;
   }
 
-  // AI Advice endpoint (POST with metrics JSON)
-  if (req.url === '/ai-advice' && req.method === 'POST') {
-    if (!ANTHROPIC_API_KEY) {
-      res.end(JSON.stringify({ error: 'ANTHROPIC_API_KEY not set' }));
-      return;
-    }
-    // Check cache
-    if (aiAdviceCache.text && (Date.now() - aiAdviceCache.ts < AI_CACHE_TTL)) {
-      res.end(JSON.stringify({ advice: aiAdviceCache.text, cached: true, ts: aiAdviceCache.ts }));
-      return;
-    }
-    let body = '';
-    req.on('data', c => body += c);
-    req.on('end', () => {
-      generateAiAdvice(body)
-        .then(text => {
-          aiAdviceCache = { text, ts: Date.now() };
-          res.end(JSON.stringify({ advice: text, cached: false, ts: aiAdviceCache.ts }));
-        })
-        .catch(e => {
-          console.error('[AI]', e.message);
-          res.end(JSON.stringify({ error: e.message }));
-        });
-    });
-    return;
-  }
-  // Handle CORS preflight for POST
-  if (req.url === '/ai-advice' && req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.statusCode = 204;
-    res.end();
-    return;
-  }
-
   res.end(JSON.stringify({
     status: isSyncing ? '⏳ syncing' : '✅ idle',
     lastSync, syncStatus, syncErrors,
@@ -494,7 +417,7 @@ http.createServer((req, res) => {
       statuses: Object.keys(statusCache[a.name]||{}).length,
       users:    Object.keys(userCache[a.name]||{}).length,
     })),
-    endpoints: { status:'GET /', sync:'GET /sync', clearCache:'GET /clear-cache', aiAdvice:'POST /ai-advice' }
+    endpoints: { status:'GET /', sync:'GET /sync', clearCache:'GET /clear-cache' }
   }, null, 2));
 }).listen(PORT, () => {
   console.log(`🚀 WeGlow AutoSync | port ${PORT} | interval ${SYNC_INTERVAL_MS/1000}s`);
