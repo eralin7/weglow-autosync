@@ -387,6 +387,51 @@ async function syncAll() {
   isSyncing = false;
 }
 
+// ── AI Advisor ──────────────────────────────────────────────────
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || '';
+let aiAdviceCache = { text: '', ts: 0 };
+const AI_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+async function generateAiAdvice(metrics) {
+  const body = JSON.stringify({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1024,
+    messages: [{
+      role: 'user',
+      content: `Ты — ИИ-советник для отдела продаж WeGlow (Казахстан, косметика/БАД). Проанализируй метрики и дай 3-5 кратких конкретных рекомендаций на русском. Формат: маркированный список, каждый пункт — конкретное действие. Без вступлений.
+
+Текущие метрики:
+${metrics}`
+    }]
+  });
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'api.anthropic.com',
+      path: '/v1/messages',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      }
+    }, res => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        try {
+          const j = JSON.parse(data);
+          if (j.content && j.content[0]) resolve(j.content[0].text);
+          else reject(new Error(j.error?.message || 'No content'));
+        } catch(e) { reject(e); }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
 // ── HTTP Server ──────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
@@ -404,6 +449,41 @@ http.createServer((req, res) => {
     return;
   }
 
+  // AI Advice endpoint (POST with metrics JSON)
+  if (req.url === '/ai-advice' && req.method === 'POST') {
+    if (!ANTHROPIC_API_KEY) {
+      res.end(JSON.stringify({ error: 'ANTHROPIC_API_KEY not set' }));
+      return;
+    }
+    // Check cache
+    if (aiAdviceCache.text && (Date.now() - aiAdviceCache.ts < AI_CACHE_TTL)) {
+      res.end(JSON.stringify({ advice: aiAdviceCache.text, cached: true, ts: aiAdviceCache.ts }));
+      return;
+    }
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => {
+      generateAiAdvice(body)
+        .then(text => {
+          aiAdviceCache = { text, ts: Date.now() };
+          res.end(JSON.stringify({ advice: text, cached: false, ts: aiAdviceCache.ts }));
+        })
+        .catch(e => {
+          console.error('[AI]', e.message);
+          res.end(JSON.stringify({ error: e.message }));
+        });
+    });
+    return;
+  }
+  // Handle CORS preflight for POST
+  if (req.url === '/ai-advice' && req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
   res.end(JSON.stringify({
     status: isSyncing ? '⏳ syncing' : '✅ idle',
     lastSync, syncStatus, syncErrors,
@@ -414,7 +494,7 @@ http.createServer((req, res) => {
       statuses: Object.keys(statusCache[a.name]||{}).length,
       users:    Object.keys(userCache[a.name]||{}).length,
     })),
-    endpoints: { status:'GET /', sync:'GET /sync', clearCache:'GET /clear-cache' }
+    endpoints: { status:'GET /', sync:'GET /sync', clearCache:'GET /clear-cache', aiAdvice:'POST /ai-advice' }
   }, null, 2));
 }).listen(PORT, () => {
   console.log(`🚀 WeGlow AutoSync | port ${PORT} | interval ${SYNC_INTERVAL_MS/1000}s`);
