@@ -353,15 +353,6 @@ async function syncAll() {
   }
   console.log(`[MGR_TO_ROP] ${Object.keys(MGR_TO_ROP_AUTO).length} managers mapped to ROPs`);
 
-  // Force KIDS ROP for managers in KIDS pipeline (Ummi)
-  const ummiMgrNames = new Set((MANAGERS['Ummi'] || []).map(m => m.name));
-  for (const [name, rop] of Object.entries(MGR_TO_ROP_AUTO)) {
-    if (ummiMgrNames.has(name)) {
-      if (rop === 'РОП Айдана') { MGR_TO_ROP_AUTO[name] = 'РОП Айдана KIDS'; console.log(`[MGR_TO_ROP] ${name}: РОП Айдана → РОП Айдана KIDS (KIDS pipeline)`); }
-      if (rop === 'РОП Диас')   { MGR_TO_ROP_AUTO[name] = 'РОП Диас KIDS';   console.log(`[MGR_TO_ROP] ${name}: РОП Диас → РОП Диас KIDS (KIDS pipeline)`); }
-    }
-  }
-
   // Preserve AD_SPEND, ROP_PLANS, MGR_TO_ROP, ARCHIVE, RNP_EXCEL from previous data
   let AD_SPEND = {}, ROP_PLANS = {}, prevMgrToRop = {};
   let ARCHIVE_RAW = {}, ARCHIVE_MANAGERS = {}, RNP_EXCEL = {}, AI_ADVICE = null;
