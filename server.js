@@ -7,14 +7,14 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const ACCOUNTS = [
   { name:'Коллаген', domain:'weglow.amocrm.ru',
     token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjIyODdkZTdmMzY4OWEzYTE0Y2Q2MmUxZDI4ZTRjZDkyOWEwMjYyNWJhNmJmZWYwYWQzOTRmZjhkY2M3MzFmNTM2ZDQ5YzdkZGQ5YmU2NDZkIn0.eyJhdWQiOiI4NWRhNjc3ZC0xOGUyLTQ5ZjktYjQ1NC1jYTNhMmVhZTlmMWIiLCJqdGkiOiIyMjg3ZGU3ZjM2ODlhM2ExNGNkNjJlMWQyOGU0Y2Q5MjlhMDI2MjViYTZiZmVmMGFkMzk0ZmY4ZGNjNzMxZjUzNmQ0OWM3ZGRkOWJlNjQ2ZCIsImlhdCI6MTc3MjY1NzYyNCwibmJmIjoxNzcyNjU3NjI0LCJleHAiOjE4OTg5ODU2MDAsInN1YiI6IjExNTQ2MzQ2IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMxOTYyMzI2LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsIm5vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiZjZmNDFlM2EtZGE4Yy00YWE3LWFhMGEtZTEyN2IzODE2NzVjIiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.IAfT5CDTKXg_UTQKcVFfrS-ZlF3ZSq7a3Mdf--jy8Z2C1YvprTwcQg2SH2b2FsEVAKDqrSgx8Lc-YblLqv4c--vLzgB5lsr-xafuI9af6QWmrsdk_NXypl7CWhv4N84StT_14icwn_AK2k9xknvagNucqrIssW57ua9tmgddFP3x71mCbia8sFmUdTNW8wB2HJNU7jo6drEmo6VxWSGUxzohV3ux3D4ZjhGsDvEngGfLI4AHrbPsf2WmWFn9mATN0kd4b742Bu1iOELKDnZeu45a63p7AQBd2XUIwxfHCbwmTOMMB-Ea-7HkmDBv-buThHWU-Vcj0krLxx3U0NFuwA',
-    // Cross-product field names to discover
     crossFieldNames: [],
-    ownFieldNames:   ['количество', 'синий', 'красный', 'умми'] },
-  { name:'Ummi', domain:'weglowkids.amocrm.ru',
-    token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjJkNmI3MWU3ZmE3Y2VjODA2YmRjM2UxNDNmZGJhOGQwY2M3YTk0OWYzMDcwOTYzYTAyY2JlNzY2NmIzZjM1MTMyMjIwMWZkZDU4N2YxNGExIn0.eyJhdWQiOiI5OGI5MDQ1OC1jMThiLTRjYTItYWRmMS1mNzFhMDc0ZGZiYzMiLCJqdGkiOiIyZDZiNzFlN2ZhN2NlYzgwNmJkYzNlMTQzZmRiYThkMGNjN2E5NDlmMzA3MDk2M2EwMmNiZTc2NjZiM2YzNTEzMjIyMDFmZGQ1ODdmMTRhMSIsImlhdCI6MTc3NDYyMDQxNCwibmJmIjoxNzc0NjIwNDE0LCJleHAiOjE5MDA4ODY0MDAsInN1YiI6IjEzMjU1OTE0IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMyNzgzNjE0LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsIm5vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiYjA1MDBiZWEtZThlNS00ZjQwLThjZmEtNzczM2VjMGVlODIwIiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.OFtzSCvufwkJ4fFj2eGBNKo_cYWIsFhY1Z5tDaszTRLj_TUPrrEHJLo4rztkaarcC7akocVkmf6nGIKoSq5cLeVRec8dRG5oMNJJN0RHX6-7eq3vppUW1mBylWarGwQnVAvXreq4DDleQfQzpCGJ39_vmWZz0pgylsWLaX92TskyB-Gh6bJw0sy_pCYt11PH_ThBaMOX7axrOA147M6J5azfDpaqNF3a7Wag_SRNi9Yl2VZdb7RikGagio8Vcykge_fCI-9FP_v7Iqo1gGDVxqW-gMwnnEwE69DkVZ5gyf91OEg8qALMRHwko9HAdSS6UHcWpheKQyXh27eA3BvRkA',
-    crossFieldNames: ['коллаген красный', 'коллаген синий', 'коллаген кофе'],
-    ownFieldNames:   ['умми'] },
+    ownFieldNames:   ['количество', 'синий', 'красный', 'умми'],
+    // Pipeline splitting: leads from KIDS pipeline → stored as "Ummi"
+    kidsPipelineMatch: 'WEGLOW KIDS UMMI' },
 ];
+
+// Old Ummi account (weglowkids.amocrm.ru) — disabled since April 6, 2026.
+// Historical data preserved in ARCHIVE_RAW/ARCHIVE_MANAGERS up to April 5.
 
 const VALID_STAGES = new Set(['заказ','заказ на подтверждение','курьерская доставка','успешно реализовано']);
 const SYNC_INTERVAL_MS = 60 * 1000;
@@ -49,14 +49,23 @@ const amoGet = (domain, token, path) =>
   fetchJSON(`https://${domain}${path}`, { headers: { Authorization: `Bearer ${token}` } });
 
 async function loadPipelines(acc) {
-  const map = {};
+  const map = {};           // status_id → status_name
+  const pipelineMap = {};   // status_id → pipeline_id
+  const pipelineNames = {}; // pipeline_id → pipeline_name
   try {
     const d = await amoGet(acc.domain, acc.token, '/api/v4/leads/pipelines?limit=250');
-    for (const p of (d?._embedded?.pipelines || []))
-      for (const s of (p._embedded?.statuses || []))
+    for (const p of (d?._embedded?.pipelines || [])) {
+      pipelineNames[p.id] = p.name;
+      for (const s of (p._embedded?.statuses || [])) {
         map[s.id] = s.name;
-    console.log(`[${acc.name}] ${Object.keys(map).length} statuses loaded`);
+        pipelineMap[s.id] = p.id;
+      }
+    }
+    console.log(`[${acc.name}] ${Object.keys(map).length} statuses, ${Object.keys(pipelineNames).length} pipelines loaded`);
+    console.log(`[${acc.name}] Pipelines:`, Object.entries(pipelineNames).map(([id,n]) => `${n} (${id})`).join(', '));
   } catch(e) { console.error(`[${acc.name}] pipelines:`, e.message); }
+  acc._pipelineMap = pipelineMap;
+  acc._pipelineNames = pipelineNames;
   return map;
 }
 
@@ -102,12 +111,16 @@ async function findOrderField(acc) {
 
 // Normalize AmoCRM group name → standard ROP name
 const ROP_NAME_MAP = {
-  'роп айдана':    'РОП Айдана',
-  'айдана роп':    'РОП Айдана',
-  'роп аслиддин':  'РОП Аслиддин',
-  'роп нурдаулет': 'РОП Нурдаулет',
-  'диас роп':      'РОП Диас',
-  'роп диас':      'РОП Диас',
+  'роп айдана':       'РОП Айдана',
+  'айдана роп':       'РОП Айдана',
+  'роп аслиддин':     'РОП Аслиддин',
+  'роп нурдаулет':    'РОП Нурдаулет',
+  'диас роп':         'РОП Диас',
+  'роп диас':         'РОП Диас',
+  'роп айдана kids':  'РОП Айдана KIDS',
+  'айдана роп kids':  'РОП Айдана KIDS',
+  'роп диас kids':    'РОП Диас KIDS',
+  'диас роп kids':    'РОП Диас KIDS',
 };
 function normalizeRopName(groupName) {
   const lower = groupName.toLowerCase().trim();
@@ -169,9 +182,26 @@ const getField = (lead, id) => id
   ? (lead.custom_fields_values || []).find(x => x.field_id === id)?.values?.[0]?.value ?? null
   : null;
 
-function parseLeads(leads, acc, statusMap, userMap) {
+// Determine if a lead belongs to the KIDS pipeline
+function isKidsPipeline(lead, acc) {
+  if (!acc.kidsPipelineMatch || !acc._pipelineMap || !acc._pipelineNames) return false;
+  const pipelineId = acc._pipelineMap[lead.status_id];
+  if (!pipelineId) return false;
+  const pName = (acc._pipelineNames[pipelineId] || '').toUpperCase();
+  return pName.includes(acc.kidsPipelineMatch.toUpperCase());
+}
+
+function parseLeads(leads, acc, statusMap, userMap, filterPipeline) {
+  // filterPipeline: 'kids' | 'main' | null (all)
   const daily = {}, mgrs = {}, cross = {}, products = {}; // products: { fieldName: {date: qty} }
   for (const lead of leads) {
+    // Pipeline filtering
+    if (filterPipeline) {
+      const isKids = isKidsPipeline(lead, acc);
+      if (filterPipeline === 'kids' && !isKids) continue;
+      if (filterPipeline === 'main' && isKids) continue;
+    }
+
     const stage      = (statusMap[lead.status_id] || '').toLowerCase();
     const validStage = VALID_STAGES.has(stage);
     const mgrName    = userMap[lead.responsible_user_id] || '';
@@ -277,12 +307,33 @@ async function syncAll() {
       acc.orderDateFieldId = fieldCache[acc.name];
 
       const leads = await fetchAllLeads(acc);
-      const { daily, managers, cross, products } = parseLeads(leads, acc, statusCache[acc.name], userCache[acc.name]);
-      RAW[acc.name] = daily; MANAGERS[acc.name] = managers; CROSS_SALES[acc.name] = cross; PRODUCTS[acc.name] = products;
 
-      const deals  = managers.reduce((s,m) => s+m.deals, 0);
-      const budget = managers.reduce((s,m) => s+m.budget, 0);
-      console.log(`[${acc.name}] ✅ ${Object.keys(daily).length} дней | ${deals} сделок | ${(budget/1e6).toFixed(1)}M ₸`);
+      if (acc.kidsPipelineMatch) {
+        // Split leads by pipeline: main → Коллаген, kids → Ummi
+        const mainResult = parseLeads(leads, acc, statusCache[acc.name], userCache[acc.name], 'main');
+        const kidsResult = parseLeads(leads, acc, statusCache[acc.name], userCache[acc.name], 'kids');
+
+        RAW[acc.name] = mainResult.daily; MANAGERS[acc.name] = mainResult.managers;
+        CROSS_SALES[acc.name] = mainResult.cross; PRODUCTS[acc.name] = mainResult.products;
+
+        RAW['Ummi'] = kidsResult.daily; MANAGERS['Ummi'] = kidsResult.managers;
+        CROSS_SALES['Ummi'] = kidsResult.cross; PRODUCTS['Ummi'] = kidsResult.products;
+
+        const mainDeals  = mainResult.managers.reduce((s,m) => s+m.deals, 0);
+        const mainBudget = mainResult.managers.reduce((s,m) => s+m.budget, 0);
+        console.log(`[${acc.name}] ✅ ${Object.keys(mainResult.daily).length} дней | ${mainDeals} сделок | ${(mainBudget/1e6).toFixed(1)}M ₸`);
+
+        const kidsDeals  = kidsResult.managers.reduce((s,m) => s+m.deals, 0);
+        const kidsBudget = kidsResult.managers.reduce((s,m) => s+m.budget, 0);
+        console.log(`[Ummi/KIDS] ✅ ${Object.keys(kidsResult.daily).length} дней | ${kidsDeals} сделок | ${(kidsBudget/1e6).toFixed(1)}M ₸`);
+      } else {
+        const { daily, managers, cross, products } = parseLeads(leads, acc, statusCache[acc.name], userCache[acc.name], null);
+        RAW[acc.name] = daily; MANAGERS[acc.name] = managers; CROSS_SALES[acc.name] = cross; PRODUCTS[acc.name] = products;
+
+        const deals  = managers.reduce((s,m) => s+m.deals, 0);
+        const budget = managers.reduce((s,m) => s+m.budget, 0);
+        console.log(`[${acc.name}] ✅ ${Object.keys(daily).length} дней | ${deals} сделок | ${(budget/1e6).toFixed(1)}M ₸`);
+      }
     } catch(e) {
       console.error(`[${acc.name}] ❌`, e.message);
       syncErrors.push(`${acc.name}: ${e.message}`);
@@ -324,8 +375,8 @@ async function syncAll() {
     console.error('[PRESERVE] Failed to read previous data:', e.message);
   }
 
-  // Merge auto-detected MGR_TO_ROP with previous (auto wins on conflict)
-  const finalMgrToRop = Object.keys(MGR_TO_ROP_AUTO).length > 0 ? MGR_TO_ROP_AUTO : prevMgrToRop;
+  // Merge auto-detected MGR_TO_ROP with previous (keep old mappings for archived managers, auto wins on conflict)
+  const finalMgrToRop = { ...prevMgrToRop, ...MGR_TO_ROP_AUTO };
 
   await sbSave({ RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP: finalMgrToRop, CROSS_SALES, PRODUCTS, ARCHIVE_RAW, ARCHIVE_MANAGERS, RNP_EXCEL, updatedAt: new Date().toISOString() });
 
