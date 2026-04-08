@@ -49,16 +49,19 @@ const amoGet = (domain, token, path) =>
   fetchJSON(`https://${domain}${path}`, { headers: { Authorization: `Bearer ${token}` } });
 
 async function loadPipelines(acc) {
-  const map = {};           // status_id → status_name
-  const pipelineMap = {};   // status_id → pipeline_id
+  const map = {};           // status_id → status_name  (non-shared statuses)
+  const pipelineMap = {};   // status_id → pipeline_id  (non-shared statuses)
   const pipelineNames = {}; // pipeline_id → pipeline_name
+  const statusByPipeline = {}; // pipeline_id → { status_id → status_name }  (handles shared IDs like 142/143)
   try {
     const d = await amoGet(acc.domain, acc.token, '/api/v4/leads/pipelines?limit=250');
     for (const p of (d?._embedded?.pipelines || [])) {
       pipelineNames[p.id] = p.name;
+      statusByPipeline[p.id] = {};
       for (const s of (p._embedded?.statuses || [])) {
         map[s.id] = s.name;
         pipelineMap[s.id] = p.id;
+        statusByPipeline[p.id][s.id] = s.name;
       }
     }
     console.log(`[${acc.name}] ${Object.keys(map).length} statuses, ${Object.keys(pipelineNames).length} pipelines loaded`);
@@ -66,6 +69,7 @@ async function loadPipelines(acc) {
   } catch(e) { console.error(`[${acc.name}] pipelines:`, e.message); }
   acc._pipelineMap = pipelineMap;
   acc._pipelineNames = pipelineNames;
+  acc._statusByPipeline = statusByPipeline;
   return map;
 }
 
@@ -184,8 +188,9 @@ const getField = (lead, id) => id
 
 // Determine if a lead belongs to the KIDS pipeline
 function isKidsPipeline(lead, acc) {
-  if (!acc.kidsPipelineMatch || !acc._pipelineMap || !acc._pipelineNames) return false;
-  const pipelineId = acc._pipelineMap[lead.status_id];
+  if (!acc.kidsPipelineMatch || !acc._pipelineNames) return false;
+  // Use lead.pipeline_id directly (status_id is NOT unique across pipelines — e.g. 142/143 are shared)
+  const pipelineId = lead.pipeline_id;
   if (!pipelineId) return false;
   const pName = (acc._pipelineNames[pipelineId] || '').toUpperCase();
   return pName.includes(acc.kidsPipelineMatch.toUpperCase());
@@ -202,7 +207,9 @@ function parseLeads(leads, acc, statusMap, userMap, filterPipeline) {
       if (filterPipeline === 'main' && isKids) continue;
     }
 
-    const stage      = (statusMap[lead.status_id] || '').toLowerCase();
+    // Use pipeline-specific status name (shared IDs like 142/143 have different names per pipeline)
+    const pipelineStatuses = acc._statusByPipeline && lead.pipeline_id ? acc._statusByPipeline[lead.pipeline_id] : null;
+    const stage      = ((pipelineStatuses ? pipelineStatuses[lead.status_id] : null) || statusMap[lead.status_id] || '').toLowerCase();
     const validStage = VALID_STAGES.has(stage);
     const mgrName    = userMap[lead.responsible_user_id] || '';
     const budget     = lead.price || 0;
