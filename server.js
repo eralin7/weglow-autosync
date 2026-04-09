@@ -96,6 +96,16 @@ async function findOrderField(acc) {
       }
     }
 
+    // Find city field
+    const cityField = fields.find(f => f.name.toLowerCase() === 'город')
+                   || fields.find(f => f.name.toLowerCase().includes('город'));
+    if (cityField) {
+      acc.cityFieldId = cityField.id;
+      console.log(`[${acc.name}] ✅ cityField: ${cityField.id} "${cityField.name}"`);
+    } else {
+      console.log(`[${acc.name}] ⚠ No city field found`);
+    }
+
     // Find own product fields (numeric qty fields)
     acc.ownFields = {}; // { fieldName: fieldId }
     for (const name of (acc.ownFieldNames || [])) {
@@ -198,7 +208,7 @@ function isKidsPipeline(lead, acc) {
 
 function parseLeads(leads, acc, statusMap, userMap, filterPipeline) {
   // filterPipeline: 'kids' | 'main' | null (all)
-  const daily = {}, mgrs = {}, cross = {}, products = {}; // products: { fieldName: {date: qty} }
+  const daily = {}, mgrs = {}, cross = {}, products = {}, cities = {}; // cities: { cityName: { deals: N, budget: N } }
   for (const lead of leads) {
     // Pipeline filtering
     if (filterPipeline) {
@@ -261,6 +271,15 @@ function parseLeads(leads, acc, statusMap, userMap, filterPipeline) {
         if (!mgrs[mgrName].daily[oDate]) mgrs[mgrName].daily[oDate] = [0,0,0];
         mgrs[mgrName].daily[oDate][1]++; mgrs[mgrName].daily[oDate][2] += budget;
       }
+      // Collect city from deal
+      if (acc.cityFieldId) {
+        const city = (getField(lead, acc.cityFieldId) || '').trim();
+        if (city) {
+          if (!cities[city]) cities[city] = { deals: 0, budget: 0 };
+          cities[city].deals++;
+          cities[city].budget += budget;
+        }
+      }
     }
   }
   const managers = Object.entries(mgrs).map(([name,v]) => ({
@@ -269,7 +288,7 @@ function parseLeads(leads, acc, statusMap, userMap, filterPipeline) {
     avgCheck: v.deals>0 ? Math.round(v.budget/v.deals) : 0,
     daily: v.daily,
   })).sort((a,b) => b.budget-a.budget);
-  return { daily, managers, cross, products };
+  return { daily, managers, cross, products, cities };
 }
 
 // ── Supabase ─────────────────────────────────────────────────────
@@ -304,7 +323,7 @@ async function syncAll() {
   const t0 = Date.now();
   console.log(`\n[${new Date().toISOString()}] ══ SYNC START ══`);
   syncErrors = [];
-  const RAW = {}, MANAGERS = {}, CROSS_SALES = {}, PRODUCTS = {};
+  const RAW = {}, MANAGERS = {}, CROSS_SALES = {}, PRODUCTS = {}, CITIES = {};
 
   for (const acc of ACCOUNTS) {
     try {
@@ -326,6 +345,14 @@ async function syncAll() {
         RAW['Ummi'] = kidsResult.daily; MANAGERS['Ummi'] = kidsResult.managers;
         CROSS_SALES['Ummi'] = kidsResult.cross; PRODUCTS['Ummi'] = kidsResult.products;
 
+        // Merge cities from both pipelines
+        for (const src of [mainResult.cities, kidsResult.cities]) {
+          for (const [city, v] of Object.entries(src || {})) {
+            if (!CITIES[city]) CITIES[city] = { deals: 0, budget: 0 };
+            CITIES[city].deals += v.deals; CITIES[city].budget += v.budget;
+          }
+        }
+
         const mainDeals  = mainResult.managers.reduce((s,m) => s+m.deals, 0);
         const mainBudget = mainResult.managers.reduce((s,m) => s+m.budget, 0);
         console.log(`[${acc.name}] ✅ ${Object.keys(mainResult.daily).length} дней | ${mainDeals} сделок | ${(mainBudget/1e6).toFixed(1)}M ₸`);
@@ -334,8 +361,12 @@ async function syncAll() {
         const kidsBudget = kidsResult.managers.reduce((s,m) => s+m.budget, 0);
         console.log(`[Ummi/KIDS] ✅ ${Object.keys(kidsResult.daily).length} дней | ${kidsDeals} сделок | ${(kidsBudget/1e6).toFixed(1)}M ₸`);
       } else {
-        const { daily, managers, cross, products } = parseLeads(leads, acc, statusCache[acc.name], userCache[acc.name], null);
+        const { daily, managers, cross, products, cities: accCities } = parseLeads(leads, acc, statusCache[acc.name], userCache[acc.name], null);
         RAW[acc.name] = daily; MANAGERS[acc.name] = managers; CROSS_SALES[acc.name] = cross; PRODUCTS[acc.name] = products;
+        for (const [city, v] of Object.entries(accCities || {})) {
+          if (!CITIES[city]) CITIES[city] = { deals: 0, budget: 0 };
+          CITIES[city].deals += v.deals; CITIES[city].budget += v.budget;
+        }
 
         const deals  = managers.reduce((s,m) => s+m.deals, 0);
         const budget = managers.reduce((s,m) => s+m.budget, 0);
@@ -386,7 +417,8 @@ async function syncAll() {
   // Merge auto-detected MGR_TO_ROP with previous (keep old mappings for archived managers, auto wins on conflict)
   const finalMgrToRop = { ...prevMgrToRop, ...MGR_TO_ROP_AUTO };
 
-  const savePayload = { RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP: finalMgrToRop, CROSS_SALES, PRODUCTS, ARCHIVE_RAW, ARCHIVE_MANAGERS, RNP_EXCEL, updatedAt: new Date().toISOString() };
+  const savePayload = { RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP: finalMgrToRop, CROSS_SALES, PRODUCTS, CITIES, ARCHIVE_RAW, ARCHIVE_MANAGERS, RNP_EXCEL, updatedAt: new Date().toISOString() };
+  console.log(`[Cities] ${Object.keys(CITIES).length} городов: ${Object.entries(CITIES).sort((a,b)=>b[1].deals-a[1].deals).slice(0,5).map(([c,v])=>`${c}(${v.deals})`).join(', ')}`);
   if (AI_ADVICE) savePayload.AI_ADVICE = AI_ADVICE;
   await sbSave(savePayload);
 
