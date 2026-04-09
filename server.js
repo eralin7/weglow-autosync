@@ -456,7 +456,14 @@ async function syncAll() {
   try {
     const r = await sbGet('weglow_data?id=eq.1&select=data');
     if (r && r[0] && r[0].data) {
-      if (r[0].data.AD_SPEND && Object.keys(r[0].data.AD_SPEND).length > 0) AD_SPEND = r[0].data.AD_SPEND;
+      if (r[0].data.AD_SPEND && Object.keys(r[0].data.AD_SPEND).length > 0) {
+        // Fix corrupted UTF-8 keys (e.g. "Колл\uFFFDген" → "Коллаген")
+        for (const [k, v] of Object.entries(r[0].data.AD_SPEND)) {
+          const clean = k.replace(/\uFFFD/g, '');
+          if (clean.includes('олл') && clean.includes('ген')) AD_SPEND['Коллаген'] = v;
+          else AD_SPEND[k] = v;
+        }
+      }
       if (r[0].data.ROP_PLANS && Object.keys(r[0].data.ROP_PLANS).length > 0) ROP_PLANS = r[0].data.ROP_PLANS;
       if (r[0].data.MGR_TO_ROP) prevMgrToRop = r[0].data.MGR_TO_ROP;
       if (r[0].data.ARCHIVE_RAW) ARCHIVE_RAW = r[0].data.ARCHIVE_RAW;
