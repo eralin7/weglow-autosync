@@ -11,6 +11,13 @@ const ACCOUNTS = [
     ownFieldNames:   ['количество', 'синий', 'красный', 'умми'],
     // Pipeline splitting: leads from KIDS pipeline → stored as "Ummi"
     kidsPipelineMatch: 'WEGLOW KIDS UMMI' },
+
+  { name:'Кофе (Архив)', domain:'mushrooms.amocrm.ru',
+    token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6ImJlZmVhMzE1OGNiMjc4ZjgxYmIwYTllZDcyNDRkMDFjNDdkMDJiMWY1Zjk3NzcyOGJlZGNjY2Q5ODBhMGU4YmRiYzVkNGNlNzYzOTcwZjRjIn0.eyJhdWQiOiJmNDliNzY0ZC1iM2EwLTQzZjQtODczYi0yYzk2ZGEwYmEyNmMiLCJqdGkiOiJiZWZlYTMxNThjYjI3OGY4MWJiMGE5ZWQ3MjQ0ZDAxYzQ3ZDAyYjFmNWY5Nzc3MjhiZWRjY2NkOTgwYTBlOGJkYmM1ZDRjZTc2Mzk3MGY0YyIsImlhdCI6MTc3MjY1Nzc0MSwibmJmIjoxNzcyNjU3NzQxLCJleHAiOjE4OTkwNzIwMDAsInN1YiI6IjIzOTc4NjUiLCJncmFudF90eXBlIjoiIiwiYWNjb3VudF9pZCI6MzI4ODY4NzAsImJhc2VfZG9tYWluIjoiYW1vY3JtLnJ1IiwidmVyc2lvbiI6Miwic2NvcGVzIjpbInB1c2hfbm90aWZpY2F0aW9ucyIsImZpbGVzIiwiY3JtIiwibm90aWZpY2F0aW9ucyJdLCJoYXNoX3V1aWQiOiIwMTI3ODQ4NS00NjQ2LTRkMGEtOTQ4Ni1kZDZiNmJmM2M1YTYiLCJhcGlfZG9tYWluIjoiYXBpLWIuYW1vY3JtLnJ1In0.hHlVdsC4TpTfqdeefNyn4OFXdRMwzEuq7c3QPgrK86gHom2aypje6tx4WLbbwZJ8Jm5aEqctQH9zZF4CliB9oB9bghAn66ElAHSmmhfnxIsrfXWecPErPN9WiD6edBlpyPHaoP6JjhBKmJ2mkBWaeV0U52L50aoglTy5nPRbdKa3kXBFAqZQo3L8_sN5jhvbBwsieAr6F_CAfjYJani_qEAQ9egSeoE8xJBv5S1ll6U28F2NPeRqMYqjPUAAKNtje2eTuRWXk5IsP4OsGaLi4AKctRBvanMvfUmQu-5GJ6XwdOaSuShWw36ryVVijrIQ4mdmbRnZLsZT7Th53ipiYg',
+    crossFieldNames: [],
+    ownFieldNames:   [],
+    // Archive: only data before March 23, 2026
+    maxDate: '23.03.2026' },
 ];
 
 // Old Ummi account (weglowkids.amocrm.ru) — disabled since April 6, 2026.
@@ -196,6 +203,47 @@ const getField = (lead, id) => id
   ? (lead.custom_fields_values || []).find(x => x.field_id === id)?.values?.[0]?.value ?? null
   : null;
 
+// Parse "dd.mm.yyyy" → Date object
+function parseDate(s) {
+  const [dd,mm,yy] = s.split('.').map(Number);
+  return new Date(yy, mm-1, dd);
+}
+
+// Filter parsed results to only include dates strictly before maxDate (dd.mm.yyyy)
+function filterByMaxDate(result, maxDateStr) {
+  const maxDt = parseDate(maxDateStr);
+  // Filter daily
+  const filteredDaily = {};
+  for (const [date, vals] of Object.entries(result.daily)) {
+    if (parseDate(date) < maxDt) filteredDaily[date] = vals;
+  }
+  // Filter managers
+  const filteredMgrs = [];
+  for (const m of result.managers) {
+    const newDaily = {};
+    for (const [date, vals] of Object.entries(m.daily || {})) {
+      if (parseDate(date) < maxDt) newDaily[date] = vals;
+    }
+    if (Object.keys(newDaily).length) {
+      let l=0,d=0,b=0;
+      for (const v of Object.values(newDaily)) { l+=v[0]||0; d+=v[1]||0; b+=v[2]||0; }
+      filteredMgrs.push({ name: m.name, leads:l, deals:d, budget:Math.round(b),
+        conv: l>0 ? +(d/l*100).toFixed(1) : 0, avgCheck: d>0 ? Math.round(b/d) : 0, daily: newDaily });
+    }
+  }
+  filteredMgrs.sort((a,b) => b.budget - a.budget);
+  // Filter cities
+  const filteredCities = {};
+  for (const [city, dailyData] of Object.entries(result.cities || {})) {
+    const cd = {};
+    for (const [date, vals] of Object.entries(dailyData)) {
+      if (parseDate(date) < maxDt) cd[date] = vals;
+    }
+    if (Object.keys(cd).length) filteredCities[city] = cd;
+  }
+  return { daily: filteredDaily, managers: filteredMgrs, cross: result.cross, products: result.products, cities: filteredCities };
+}
+
 // Determine if a lead belongs to the KIDS pipeline
 function isKidsPipeline(lead, acc) {
   if (!acc.kidsPipelineMatch || !acc._pipelineNames) return false;
@@ -365,7 +413,10 @@ async function syncAll() {
         const kidsBudget = kidsResult.managers.reduce((s,m) => s+m.budget, 0);
         console.log(`[Ummi/KIDS] ✅ ${Object.keys(kidsResult.daily).length} дней | ${kidsDeals} сделок | ${(kidsBudget/1e6).toFixed(1)}M ₸`);
       } else {
-        const { daily, managers, cross, products, cities: accCities } = parseLeads(leads, acc, statusCache[acc.name], userCache[acc.name], null);
+        let parsed = parseLeads(leads, acc, statusCache[acc.name], userCache[acc.name], null);
+        // Apply maxDate filter for archive accounts (e.g. "Кофе (Архив)" — only dates before cutoff)
+        if (acc.maxDate) parsed = filterByMaxDate(parsed, acc.maxDate);
+        const { daily, managers, cross, products, cities: accCities } = parsed;
         RAW[acc.name] = daily; MANAGERS[acc.name] = managers; CROSS_SALES[acc.name] = cross; PRODUCTS[acc.name] = products;
         for (const [city, dailyData] of Object.entries(accCities || {})) {
           if (!CITIES[city]) CITIES[city] = {};
