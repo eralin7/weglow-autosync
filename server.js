@@ -271,13 +271,14 @@ function parseLeads(leads, acc, statusMap, userMap, filterPipeline) {
         if (!mgrs[mgrName].daily[oDate]) mgrs[mgrName].daily[oDate] = [0,0,0];
         mgrs[mgrName].daily[oDate][1]++; mgrs[mgrName].daily[oDate][2] += budget;
       }
-      // Collect city from deal
+      // Collect city from deal (with daily breakdown for period filtering)
       if (acc.cityFieldId) {
         const city = (getField(lead, acc.cityFieldId) || '').trim();
         if (city) {
-          if (!cities[city]) cities[city] = { deals: 0, budget: 0 };
-          cities[city].deals++;
-          cities[city].budget += budget;
+          if (!cities[city]) cities[city] = {};
+          if (!cities[city][oDate]) cities[city][oDate] = [0, 0];
+          cities[city][oDate][0]++;
+          cities[city][oDate][1] += budget;
         }
       }
     }
@@ -345,11 +346,14 @@ async function syncAll() {
         RAW['Ummi'] = kidsResult.daily; MANAGERS['Ummi'] = kidsResult.managers;
         CROSS_SALES['Ummi'] = kidsResult.cross; PRODUCTS['Ummi'] = kidsResult.products;
 
-        // Merge cities from both pipelines
+        // Merge cities from both pipelines (daily format)
         for (const src of [mainResult.cities, kidsResult.cities]) {
-          for (const [city, v] of Object.entries(src || {})) {
-            if (!CITIES[city]) CITIES[city] = { deals: 0, budget: 0 };
-            CITIES[city].deals += v.deals; CITIES[city].budget += v.budget;
+          for (const [city, dailyData] of Object.entries(src || {})) {
+            if (!CITIES[city]) CITIES[city] = {};
+            for (const [date, vals] of Object.entries(dailyData)) {
+              if (!CITIES[city][date]) CITIES[city][date] = [0, 0];
+              CITIES[city][date][0] += vals[0]; CITIES[city][date][1] += vals[1];
+            }
           }
         }
 
@@ -363,9 +367,12 @@ async function syncAll() {
       } else {
         const { daily, managers, cross, products, cities: accCities } = parseLeads(leads, acc, statusCache[acc.name], userCache[acc.name], null);
         RAW[acc.name] = daily; MANAGERS[acc.name] = managers; CROSS_SALES[acc.name] = cross; PRODUCTS[acc.name] = products;
-        for (const [city, v] of Object.entries(accCities || {})) {
-          if (!CITIES[city]) CITIES[city] = { deals: 0, budget: 0 };
-          CITIES[city].deals += v.deals; CITIES[city].budget += v.budget;
+        for (const [city, dailyData] of Object.entries(accCities || {})) {
+          if (!CITIES[city]) CITIES[city] = {};
+          for (const [date, vals] of Object.entries(dailyData)) {
+            if (!CITIES[city][date]) CITIES[city][date] = [0, 0];
+            CITIES[city][date][0] += vals[0]; CITIES[city][date][1] += vals[1];
+          }
         }
 
         const deals  = managers.reduce((s,m) => s+m.deals, 0);
