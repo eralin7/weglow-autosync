@@ -8,7 +8,7 @@ const ACCOUNTS = [
   { name:'Коллаген', domain:'weglow.amocrm.ru',
     token:'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjIyODdkZTdmMzY4OWEzYTE0Y2Q2MmUxZDI4ZTRjZDkyOWEwMjYyNWJhNmJmZWYwYWQzOTRmZjhkY2M3MzFmNTM2ZDQ5YzdkZGQ5YmU2NDZkIn0.eyJhdWQiOiI4NWRhNjc3ZC0xOGUyLTQ5ZjktYjQ1NC1jYTNhMmVhZTlmMWIiLCJqdGkiOiIyMjg3ZGU3ZjM2ODlhM2ExNGNkNjJlMWQyOGU0Y2Q5MjlhMDI2MjViYTZiZmVmMGFkMzk0ZmY4ZGNjNzMxZjUzNmQ0OWM3ZGRkOWJlNjQ2ZCIsImlhdCI6MTc3MjY1NzYyNCwibmJmIjoxNzcyNjU3NjI0LCJleHAiOjE4OTg5ODU2MDAsInN1YiI6IjExNTQ2MzQ2IiwiZ3JhbnRfdHlwZSI6IiIsImFjY291bnRfaWQiOjMxOTYyMzI2LCJiYXNlX2RvbWFpbiI6ImFtb2NybS5ydSIsInZlcnNpb24iOjIsInNjb3BlcyI6WyJwdXNoX25vdGlmaWNhdGlvbnMiLCJmaWxlcyIsImNybSIsIm5vdGlmaWNhdGlvbnMiXSwiaGFzaF91dWlkIjoiZjZmNDFlM2EtZGE4Yy00YWE3LWFhMGEtZTEyN2IzODE2NzVjIiwiYXBpX2RvbWFpbiI6ImFwaS1iLmFtb2NybS5ydSJ9.IAfT5CDTKXg_UTQKcVFfrS-ZlF3ZSq7a3Mdf--jy8Z2C1YvprTwcQg2SH2b2FsEVAKDqrSgx8Lc-YblLqv4c--vLzgB5lsr-xafuI9af6QWmrsdk_NXypl7CWhv4N84StT_14icwn_AK2k9xknvagNucqrIssW57ua9tmgddFP3x71mCbia8sFmUdTNW8wB2HJNU7jo6drEmo6VxWSGUxzohV3ux3D4ZjhGsDvEngGfLI4AHrbPsf2WmWFn9mATN0kd4b742Bu1iOELKDnZeu45a63p7AQBd2XUIwxfHCbwmTOMMB-Ea-7HkmDBv-buThHWU-Vcj0krLxx3U0NFuwA',
     crossFieldNames: [],
-    ownFieldNames:   ['количество', 'синий', 'красный', 'умми'],
+    ownFieldNames:   ['кофе', 'синий', 'красный', 'умми'],
     // Pipeline splitting: leads from KIDS pipeline → stored as "Ummi"
     kidsPipelineMatch: 'WEGLOW KIDS UMMI' },
 
