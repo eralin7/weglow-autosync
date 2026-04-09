@@ -447,6 +447,8 @@ async function syncAll() {
       if (mgrName && ropName) MGR_TO_ROP_AUTO[mgrName] = ropName;
     }
   }
+  // Hardcoded: БОТА AI is its own ROP group
+  MGR_TO_ROP_AUTO['БОТА AI'] = 'БОТА AI';
   console.log(`[MGR_TO_ROP] ${Object.keys(MGR_TO_ROP_AUTO).length} managers mapped to ROPs`);
 
   // Preserve AD_SPEND, ROP_PLANS, MGR_TO_ROP, ARCHIVE, RNP_EXCEL from previous data
