@@ -466,8 +466,17 @@ async function syncAll() {
           else AD_SPEND[k] = v;
         }
       }
-      if (r[0].data.ROP_PLANS && Object.keys(r[0].data.ROP_PLANS).length > 0) ROP_PLANS = r[0].data.ROP_PLANS;
-      if (r[0].data.MGR_TO_ROP) prevMgrToRop = r[0].data.MGR_TO_ROP;
+      if (r[0].data.ROP_PLANS && Object.keys(r[0].data.ROP_PLANS).length > 0) {
+        // Clean corrupted Unicode keys from ROP_PLANS
+        for (const k of Object.keys(r[0].data.ROP_PLANS)) {
+          if (!k.includes('\ufffd')) ROP_PLANS[k] = r[0].data.ROP_PLANS[k];
+        }
+      }
+      if (r[0].data.MGR_TO_ROP) {
+        for (const [k,v] of Object.entries(r[0].data.MGR_TO_ROP)) {
+          if (!k.includes('\ufffd') && !v.includes('\ufffd')) prevMgrToRop[k] = v;
+        }
+      }
       if (r[0].data.ARCHIVE_RAW) ARCHIVE_RAW = r[0].data.ARCHIVE_RAW;
       if (r[0].data.ARCHIVE_MANAGERS) ARCHIVE_MANAGERS = r[0].data.ARCHIVE_MANAGERS;
       if (r[0].data.RNP_EXCEL) RNP_EXCEL = r[0].data.RNP_EXCEL;
