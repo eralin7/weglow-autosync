@@ -467,9 +467,20 @@ async function syncAll() {
         }
       }
       if (r[0].data.ROP_PLANS && Object.keys(r[0].data.ROP_PLANS).length > 0) {
-        // Clean corrupted Unicode keys from ROP_PLANS
-        for (const k of Object.keys(r[0].data.ROP_PLANS)) {
-          if (!k.includes('\ufffd')) ROP_PLANS[k] = r[0].data.ROP_PLANS[k];
+        // Clean corrupted Unicode keys: try to recover to known ROP names
+        const _knownRops = ['РОП Айдана','РОП Аслиддин','РОП Нурдаулет','РОП Ербол','РОП Айдана KIDS','РОП Диас KIDS','БОТА AI'];
+        for (const [k, v] of Object.entries(r[0].data.ROP_PLANS)) {
+          if (!k.includes('\ufffd')) { ROP_PLANS[k] = v; continue; }
+          // Try to match corrupted key to known ROP
+          const stripped = k.replace(/\uFFFD/g, '');
+          const match = _knownRops.find(r => {
+            const rs = r.toLowerCase();
+            return stripped.toLowerCase().includes(rs.replace(/роп /,'').trim()) || rs.includes(stripped.replace(/роп /i,'').trim());
+          });
+          if (match && !ROP_PLANS[match]) {
+            ROP_PLANS[match] = v;
+            console.log(`[ROP_PLANS] Recovered corrupted "${k}" → "${match}"`);
+          }
         }
       }
       if (r[0].data.MGR_TO_ROP) {
