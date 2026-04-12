@@ -26,6 +26,10 @@ const ACCOUNTS = [
 const VALID_STAGES = new Set(['заказ','заказ на подтверждение','курьерская доставка','успешно реализовано']);
 const SYNC_INTERVAL_MS = 60 * 1000;
 
+// In-memory backup of ROP_PLANS — survives individual sync cycles
+// so even if Supabase data gets corrupted, we never lose plans
+let _ROP_PLANS_BACKUP = {};
+
 // ── HTTP helper ──────────────────────────────────────────────────
 function fetchJSON(url, opts = {}) {
   return new Promise((resolve, reject) => {
@@ -454,6 +458,7 @@ async function syncAll() {
   // Preserve AD_SPEND, ROP_PLANS, MGR_TO_ROP, ARCHIVE, RNP_EXCEL from previous data
   let AD_SPEND = {}, ROP_PLANS = {}, prevMgrToRop = {};
   let ARCHIVE_RAW = {}, ARCHIVE_MANAGERS = {}, RNP_EXCEL = {}, AI_ADVICE = null;
+  let AD_REQUESTS = null;
   let preserveOk = false;
   try {
     const r = await sbGet('weglow_data?id=eq.1&select=data');
@@ -467,22 +472,38 @@ async function syncAll() {
         }
       }
       if (r[0].data.ROP_PLANS && Object.keys(r[0].data.ROP_PLANS).length > 0) {
-        // Clean corrupted Unicode keys: try to recover to known ROP names
+        // Step 1: Start with in-memory backup (never lose what we had before)
+        ROP_PLANS = { ..._ROP_PLANS_BACKUP };
+
+        // Step 2: Read clean keys from Supabase (overwrite backup with fresh data)
+        for (const [k, v] of Object.entries(r[0].data.ROP_PLANS)) {
+          if (!k.includes('\ufffd')) ROP_PLANS[k] = v;
+        }
+
+        // Step 3: Recover corrupted keys to known ROP names
         const _knownRops = ['РОП Айдана','РОП Аслиддин','РОП Нурдаулет','РОП Ербол','РОП Айдана KIDS','РОП Диас KIDS','БОТА AI'];
         for (const [k, v] of Object.entries(r[0].data.ROP_PLANS)) {
-          if (!k.includes('\ufffd')) { ROP_PLANS[k] = v; continue; }
-          // Try to match corrupted key to known ROP
-          const stripped = k.replace(/\uFFFD/g, '');
-          const match = _knownRops.find(r => {
-            const rs = r.toLowerCase();
-            return stripped.toLowerCase().includes(rs.replace(/роп /,'').trim()) || rs.includes(stripped.replace(/роп /i,'').trim());
+          if (!k.includes('\ufffd')) continue;
+          const stripped = k.replace(/\uFFFD/g, '').toLowerCase();
+          const match = _knownRops.find(rn => {
+            const core = rn.toLowerCase().replace(/роп /,'').trim();
+            return core.length > 2 && stripped.includes(core);
           });
           if (match && !ROP_PLANS[match]) {
             ROP_PLANS[match] = v;
-            console.log(`[ROP_PLANS] Recovered corrupted "${k}" → "${match}"`);
+            console.log(`[ROP_PLANS] Recovered corrupted key → "${match}"`);
           }
         }
+
+        // Step 4: Update in-memory backup with merged result
+        _ROP_PLANS_BACKUP = { ...ROP_PLANS };
+      } else {
+        // Supabase ROP_PLANS is empty — use backup to prevent data loss
+        ROP_PLANS = { ..._ROP_PLANS_BACKUP };
+        console.warn('[ROP_PLANS] Supabase returned empty, using in-memory backup with', Object.keys(ROP_PLANS).length, 'keys');
       }
+      // Preserve AD_REQUESTS (from ad cabinet, never touch)
+      if (r[0].data.AD_REQUESTS) AD_REQUESTS = r[0].data.AD_REQUESTS;
       if (r[0].data.MGR_TO_ROP) {
         for (const [k,v] of Object.entries(r[0].data.MGR_TO_ROP)) {
           if (!k.includes('\ufffd') && !v.includes('\ufffd')) prevMgrToRop[k] = v;
@@ -507,6 +528,7 @@ async function syncAll() {
   const savePayload = { RAW, MANAGERS, AD_SPEND, ROP_PLANS, MGR_TO_ROP: finalMgrToRop, CROSS_SALES, PRODUCTS, CITIES, ARCHIVE_RAW, ARCHIVE_MANAGERS, RNP_EXCEL, updatedAt: new Date().toISOString() };
   console.log(`[Cities] ${Object.keys(CITIES).length} городов: ${Object.entries(CITIES).sort((a,b)=>b[1].deals-a[1].deals).slice(0,5).map(([c,v])=>`${c}(${v.deals})`).join(', ')}`);
   if (AI_ADVICE) savePayload.AI_ADVICE = AI_ADVICE;
+  if (AD_REQUESTS) savePayload.AD_REQUESTS = AD_REQUESTS;
   await sbSave(savePayload);
 
   const elapsed = ((Date.now()-t0)/1000).toFixed(1);
