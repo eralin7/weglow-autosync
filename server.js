@@ -467,7 +467,7 @@ async function syncAll() {
         // Fix corrupted UTF-8 keys (e.g. "Колл\uFFFDген" → "Коллаген")
         for (const [k, v] of Object.entries(r[0].data.AD_SPEND)) {
           const clean = k.replace(/\uFFFD/g, '');
-          if (clean.includes('олл') && clean.includes('ген')) AD_SPEND['Коллаген'] = v;
+          if (clean.includes('олл') && clean.includes('аг')) AD_SPEND['Коллаген'] = v;
           else AD_SPEND[k] = v;
         }
       }
