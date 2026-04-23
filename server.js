@@ -464,10 +464,12 @@ async function syncAll() {
     const r = await sbGet('weglow_data?id=eq.1&select=data');
     if (r && r[0] && r[0].data) {
       if (r[0].data.AD_SPEND && Object.keys(r[0].data.AD_SPEND).length > 0) {
-        // Fix corrupted UTF-8 keys (e.g. "Колл\uFFFDген" → "Коллаген")
+        // Fix corrupted UTF-8 keys (e.g. "Кол\uFFFD\uFFFDаген" → "Коллаген")
         for (const [k, v] of Object.entries(r[0].data.AD_SPEND)) {
-          const clean = k.replace(/\uFFFD/g, '');
-          if (clean.includes('олл') && clean.includes('аг')) AD_SPEND['Коллаген'] = v;
+          const clean = k.replace(/\uFFFD/g, '').toLowerCase();
+          if (clean.startsWith('кол') && clean.includes('аген')) AD_SPEND['Коллаген'] = v;
+          else if (clean.includes('бо') && clean.includes('ai')) AD_SPEND['БОТА AI'] = v;
+          else if (clean === 'ummi' || k === 'Ummi') AD_SPEND['Ummi'] = v;
           else AD_SPEND[k] = v;
         }
       }
